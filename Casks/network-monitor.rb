@@ -1,8 +1,8 @@
 cask "network-monitor" do
-  version "1.2.0"
-  sha256 "ca7376e92244bcce33b879f49167df2a699bcfd597d0d3559a88fdb8642b37f8"
+  version "${VERSION}"
+  sha256 "${SHA256}"
 
-  url "https://github.com/RandomUserUsingGitHub/NetworkMonitoring/releases/download/v#{version}/NetworkMonitor-release.zip"
+  url "https://github.com/RandomUserUsingGitHub/NetworkMonitoring/releases/download/v${VERSION}/NetworkMonitor-release.zip"
   name "Network Monitor"
   desc "Lightweight macOS network monitoring app with live ping graph and IP tracking"
   homepage "https://github.com/RandomUserUsingGitHub/NetworkMonitoring"
@@ -12,22 +12,10 @@ cask "network-monitor" do
   app "dist/NetworkMonitor.app"
 
   postflight do
-    # Install daemon scripts
-    bin_dir = File.expand_path("~/.local/bin")
-    cfg_dir = File.expand_path("~/.config/network-monitor")
-    FileUtils.mkdir_p(bin_dir)
-    FileUtils.mkdir_p(cfg_dir)
-
-    daemon_src = "#{staged_path}/dist/daemon/network_monitor.sh"
-    toggle_src = "#{staged_path}/dist/daemon/netmon-toggle.sh"
-
-    FileUtils.cp(daemon_src, "#{bin_dir}/network_monitor.sh") if File.exist?(daemon_src)
-    FileUtils.cp(toggle_src, "#{bin_dir}/netmon-toggle.sh") if File.exist?(toggle_src)
-    FileUtils.chmod(0o755, "#{bin_dir}/network_monitor.sh") if File.exist?("#{bin_dir}/network_monitor.sh")
-    FileUtils.chmod(0o755, "#{bin_dir}/netmon-toggle.sh") if File.exist?("#{bin_dir}/netmon-toggle.sh")
-
     # Write default config if none exists
-    cfg_file = "#{cfg_dir}/settings.json"
+    cfg_dir = File.expand_path("~/.config/network-monitor")
+    FileUtils.mkdir_p(cfg_dir)
+    cfg_file = "\#{cfg_dir}/settings.json"
     unless File.exist?(cfg_file)
       File.write(cfg_file, <<~JSON)
         {
@@ -44,7 +32,7 @@ cask "network-monitor" do
     # Install LaunchAgent
     plist_dir = File.expand_path("~/Library/LaunchAgents")
     FileUtils.mkdir_p(plist_dir)
-    plist_path = "#{plist_dir}/com.user.network-monitor.plist"
+    plist_path = "\#{plist_dir}/com.user.network-monitor.plist"
     File.write(plist_path, <<~PLIST)
       <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
@@ -54,8 +42,8 @@ cask "network-monitor" do
         <key>Label</key>             <string>com.user.network-monitor</string>
         <key>ProgramArguments</key>
         <array>
-          <string>/bin/bash</string>
-          <string>#{bin_dir}/network_monitor.sh</string>
+          <string>/Applications/NetworkMonitor.app/Contents/MacOS/NetworkMonitor</string>
+          <string>--daemon</string>
         </array>
         <key>RunAtLoad</key>         <true/>
         <key>KeepAlive</key>         <true/>
@@ -69,9 +57,8 @@ cask "network-monitor" do
 
   uninstall launchctl: "com.user.network-monitor",
             delete:    [
-              File.expand_path("~/.local/bin/network_monitor.sh"),
-              File.expand_path("~/.local/bin/netmon-toggle.sh"),
               File.expand_path("~/Library/LaunchAgents/com.user.network-monitor.plist"),
+              File.expand_path("~/.local/bin/netmon-toggle.sh")
             ]
 
   zap trash: [
