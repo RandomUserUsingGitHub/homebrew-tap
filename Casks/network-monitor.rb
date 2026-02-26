@@ -1,8 +1,8 @@
 cask "network-monitor" do
-  version "${VERSION}"
-  sha256 "${SHA256}"
+  version "2.0.0"
+  sha256 "64b85dbe8812878a964259d9da6a354abd5e12a665836b74fea5dc3004c18712"
 
-  url "https://github.com/RandomUserUsingGitHub/NetworkMonitoring/releases/download/v${VERSION}/NetworkMonitor-release.zip"
+  url "https://github.com/RandomUserUsingGitHub/NetworkMonitoring/releases/download/v2.0.0/NetworkMonitor-release.zip"
   name "Network Monitor"
   desc "Lightweight macOS network monitoring app with live ping graph and IP tracking"
   homepage "https://github.com/RandomUserUsingGitHub/NetworkMonitoring"
@@ -15,7 +15,7 @@ cask "network-monitor" do
     # Write default config if none exists
     cfg_dir = File.expand_path("~/.config/network-monitor")
     FileUtils.mkdir_p(cfg_dir)
-    cfg_file = "\#{cfg_dir}/settings.json"
+    cfg_file = "#{cfg_dir}/settings.json"
     unless File.exist?(cfg_file)
       File.write(cfg_file, <<~JSON)
         {
@@ -32,7 +32,7 @@ cask "network-monitor" do
     # Install LaunchAgent
     plist_dir = File.expand_path("~/Library/LaunchAgents")
     FileUtils.mkdir_p(plist_dir)
-    plist_path = "\#{plist_dir}/com.user.network-monitor.plist"
+    plist_path = "#{plist_dir}/com.user.network-monitor.plist"
     File.write(plist_path, <<~PLIST)
       <?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
