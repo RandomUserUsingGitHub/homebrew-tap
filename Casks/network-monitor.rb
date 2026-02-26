@@ -1,8 +1,8 @@
 cask "network-monitor" do
-  version "2.0.0"
-  sha256 "64b85dbe8812878a964259d9da6a354abd5e12a665836b74fea5dc3004c18712"
+  version "2.1.0"
+  sha256 "acc112725706ccfa8bde58f211d31c05a3bf67478a095e39b6687671236b915b"
 
-  url "https://github.com/RandomUserUsingGitHub/NetworkMonitoring/releases/download/v2.0.0/NetworkMonitor-release.zip"
+  url "https://github.com/RandomUserUsingGitHub/NetworkMonitoring/releases/download/v2.1.0/NetworkMonitor-release.zip"
   name "Network Monitor"
   desc "Lightweight macOS network monitoring app with live ping graph and IP tracking"
   homepage "https://github.com/RandomUserUsingGitHub/NetworkMonitoring"
@@ -29,43 +29,22 @@ cask "network-monitor" do
       JSON
     end
 
-    # Install LaunchAgent
-    plist_dir = File.expand_path("~/Library/LaunchAgents")
-    FileUtils.mkdir_p(plist_dir)
-    plist_path = "#{plist_dir}/com.user.network-monitor.plist"
-    File.write(plist_path, <<~PLIST)
-      <?xml version="1.0" encoding="UTF-8"?>
-      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
-        "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-      <plist version="1.0">
-      <dict>
-        <key>Label</key>             <string>com.user.network-monitor</string>
-        <key>ProgramArguments</key>
-        <array>
-          <string>/Applications/NetworkMonitor.app/Contents/MacOS/NetworkMonitor</string>
-          <string>--daemon</string>
-        </array>
-        <key>RunAtLoad</key>         <true/>
-        <key>KeepAlive</key>         <true/>
-        <key>StandardOutPath</key>   <string>/tmp/netmon_stdout.log</string>
-        <key>StandardErrorPath</key> <string>/tmp/netmon_stderr.log</string>
-      </dict>
-      </plist>
-    PLIST
-    system_command "/bin/launchctl", args: ["load", plist_path]
+    # Clean up old daemon-style LaunchAgent if present
+    old_plist = File.expand_path("~/Library/LaunchAgents/com.user.network-monitor.plist")
+    if File.exist?(old_plist)
+      system_command "/bin/launchctl", args: ["unload", old_plist]
+      File.delete(old_plist)
+    end
   end
 
-  uninstall launchctl: "com.user.network-monitor",
-            delete:    [
+  uninstall delete: [
+              File.expand_path("~/Library/LaunchAgents/com.armin.network-monitor.login.plist"),
               File.expand_path("~/Library/LaunchAgents/com.user.network-monitor.plist"),
-              File.expand_path("~/.local/bin/netmon-toggle.sh")
             ]
 
   zap trash: [
     "~/.config/network-monitor",
     "~/.network_monitor.log",
     "/tmp/.netmon_*",
-    "/tmp/netmon_stdout.log",
-    "/tmp/netmon_stderr.log",
   ]
 end
